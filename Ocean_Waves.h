@@ -4,6 +4,9 @@
 //
 // Modular Framework for OpenGLES2 rendering on multiple platforms.
 //
+
+#include "mesh_wave.h"
+
 namespace octet {
   /// Scene containing a box with octet.
   class Ocean_Waves : public app {
