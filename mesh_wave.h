@@ -52,11 +52,11 @@ namespace octet{
     // calculate and assign them to indices
     void calculate_vertices(){
       // number of steps in helix
-      size_t num_steps = 320;
+      size_t sqr_size = 8;
 
       // allocate vertices and indices into OpenGL buffers
-      size_t num_vertices = num_steps * 2 + 2;
-      size_t num_indices = num_steps * 6;
+      size_t num_vertices = sqr_size * sqr_size;
+      size_t num_indices = std::pow((sqr_size-1), 2) * 6;
       _mesh->allocate(sizeof(my_vertex) * num_vertices, sizeof(uint32_t) * num_indices);
       _mesh->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
 
@@ -73,40 +73,33 @@ namespace octet{
         uint32_t *idx = il.u32();
 
         // make the vertices
-        float radius1 = 1.0f;
-        float radius2 = 7.0f;
-        float height = 24.0f;
-        float num_twists = 4.0f;
-        for (size_t i = 0; i != num_steps + 1; ++i) {
-          float r = 0.0f, g = 1.0f * i / num_steps, b = 1.0f;
-          float y = i * (height / num_steps) - height * 0.5f;
-          float angle = i * (num_twists * 2.0f * 3.14159265f / num_steps);
-          vtx->pos = vec3p(cosf(angle) * radius1, y, sinf(angle) * radius1);
-          vtx->colour = make_color(r, g, b);
-          log("%f %f %f %08x\n", r, g, b, vtx->colour);
-          vtx++;
-          vtx->pos = vec3p(cosf(angle) * radius2, y, sinf(angle) * radius2);
-          vtx->colour = make_color(r, g, b);
-          vtx++;
+        float offset = 1.0f; // offset per vertex
+
+        vec3 start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
+
+        for (size_t i = 0; i != sqr_size; ++i) {
+          for (size_t j = 0; j != sqr_size; ++j) {
+            vtx->pos = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f));
+            vtx->colour = make_color(1.0f, 1.0f, 0.0f);
+            vtx++;
+          }
         }
 
         // make the triangles
         uint32_t vn = 0;
-        for (size_t i = 0; i != num_steps; ++i) {
+        for (size_t i = 0; i != 55; ++i) {
           // 0--2
           // | \|
           // 1--3
-          idx[0] = vn + 0;
-          idx[1] = vn + 3;
-          idx[2] = vn + 1;
-          idx += 3;
-
-          idx[0] = vn + 0;
-          idx[1] = vn + 2;
-          idx[2] = vn + 3;
-          idx += 3;
-
-          vn += 2;
+          if (i % sqr_size != sqr_size - 1){
+            idx[0] = i;
+            idx[1] = i + sqr_size + 1;
+            idx[2] = i + 1;
+            idx[3] = i;
+            idx[4] = i + sqr_size;
+            idx[5] = i + sqr_size + 1;
+            idx += 6;
+          }
         }
       }
     }
