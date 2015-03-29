@@ -16,12 +16,17 @@ namespace octet{
     material *_material;
     param_shader *_shader;
     scene_node *_node;
+    dynarray<vec3p> points;
 
     // vertex structure to be passed to openGL
     struct my_vertex{
       vec3p pos;
       uint32_t colour;
     };
+
+    float offset;
+    vec3 start_pos;
+    int sqr_size;
 
     // this function converts three floats into a RGBA 8 bit color
     static uint32_t make_color(float r, float g, float b) {
@@ -47,10 +52,15 @@ namespace octet{
       _node = new scene_node();
       _shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
       _material = new material(vec4(1, 0, 0, 1), _shader);
+
+      offset = 1.0f;
+      sqr_size = 8;
+      start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
+      points.resize(sqr_size * sqr_size);
     }
 
     // calculate and assign them to indices
-    void calculate_vertices(){
+    void rebuild_mesh(){
       // number of steps in helix
       size_t sqr_size = 8;
 
@@ -75,11 +85,9 @@ namespace octet{
         // make the vertices
         float offset = 1.0f; // offset per vertex
 
-        vec3 start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
-
         for (size_t i = 0; i != sqr_size; ++i) {
           for (size_t j = 0; j != sqr_size; ++j) {
-            vtx->pos = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f));
+            vtx->pos = points[j + i*sqr_size];
             vtx->colour = make_color(1.0f, 1.0f, 0.0f);
             vtx++;
           }
@@ -107,6 +115,15 @@ namespace octet{
     // add the mesh to the scene
     void add_to_the_scene(visual_scene *app_scene){
       app_scene->add_mesh_instance(new mesh_instance(_node, _mesh, _material));
+    }
+
+    // update function, recalculates the nodes to change the mesh ideally to look like water
+    void update(){
+      for (size_t i = 0; i != sqr_size; ++i) {
+        for (size_t j = 0; j != sqr_size; ++j) {
+          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f));
+        }
+      }
     }
 
   };
