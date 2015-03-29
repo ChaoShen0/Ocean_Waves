@@ -16,13 +16,13 @@ namespace octet {
     ref<mesh_wave> wave;
 
     void user_controls(){
-      if (is_key_going_down('O')){
-        wave->increment_frequency();
-      }
+      if (is_key_going_down('O')){ wave->increment_frequency(); }
 
-      if (is_key_going_down('P')){
-        wave->decrement_frequency();
-      }
+      if (is_key_going_down('P')){ wave->decrement_frequency(); }
+
+      if (is_key_going_down('K')){ wave->increment_direction(); }
+
+      if (is_key_going_down('L')){ wave->decrement_direction(); }
     }
 
   public:

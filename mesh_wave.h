@@ -83,11 +83,6 @@ namespace octet{
       sqr_size = 16;
       start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
       points.resize(sqr_size * sqr_size);
-    }
-
-    // calculate and assign them to indices
-    void rebuild_mesh(){
-      _mesh->init();
 
       // allocate vertices and indices into OpenGL buffers
       size_t num_vertices = sqr_size * sqr_size;
@@ -98,43 +93,43 @@ namespace octet{
       // describe the structure of my_vertex to OpenGL
       _mesh->add_attribute(attribute_pos, 3, GL_FLOAT, 0);
       _mesh->add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
+    }
 
-      {
-        // these write-only locks give access to the vertices and indices.
-        // they will be released at the next } (the end of the scope)
-        gl_resource::wolock vl(_mesh->get_vertices());
-        my_vertex *vtx = (my_vertex *)vl.u8();
-        gl_resource::wolock il(_mesh->get_indices());
-        uint32_t *idx = il.u32();
+    // calculate and assign them to indices
+    void rebuild_mesh(){
+      // these write-only locks give access to the vertices and indices.
+      // they will be released at the next } (the end of the scope)
+      gl_resource::wolock vl(_mesh->get_vertices());
+      my_vertex *vtx = (my_vertex *)vl.u8();
+      gl_resource::wolock il(_mesh->get_indices());
+      uint32_t *idx = il.u32();
 
-        // make the vertices
-        float offset = 1.0f; // offset per vertex
-
-        for (size_t i = 0; i != sqr_size; ++i) {
-          for (size_t j = 0; j != sqr_size; ++j) {
-            vtx->pos = points[j + i*sqr_size];
-            vtx->colour = make_color(1.0f * j / sqr_size, 1.0f * i / sqr_size, 0.0f);
-            vtx++;
-          }
-        }
-
-        // make the triangles
-        uint32_t vn = 0;
-        for (size_t i = 0; i != sqr_size * (sqr_size - 1) + 1; ++i) {
-          // 0--2
-          // | \|
-          // 1--3
-          if (i % sqr_size != sqr_size - 1){
-            idx[0] = i;
-            idx[1] = i + sqr_size + 1;
-            idx[2] = i + 1;
-            idx[3] = i;
-            idx[4] = i + sqr_size;
-            idx[5] = i + sqr_size + 1;
-            idx += 6;
-          }
+      // make the vertices
+      for (size_t i = 0; i != sqr_size; ++i) {
+        for (size_t j = 0; j != sqr_size; ++j) {
+          vtx->pos = points[j + i*sqr_size];
+          vtx->colour = make_color(1.0f * j / sqr_size, 1.0f * i / sqr_size, 0.0f);
+          vtx++;
         }
       }
+
+      // make the triangles
+      uint32_t vn = 0;
+      for (size_t i = 0; i != sqr_size * (sqr_size - 1) + 1; ++i) {
+        // 0--2
+        // | \|
+        // 1--3
+        if (i % sqr_size != sqr_size - 1){
+          idx[0] = i;
+          idx[1] = i + sqr_size + 1;
+          idx[2] = i + 1;
+          idx[3] = i;
+          idx[4] = i + sqr_size;
+          idx[5] = i + sqr_size + 1;
+          idx += 6;
+        }
+      }
+
     }
 
     // add the mesh to the scene
@@ -163,6 +158,14 @@ namespace octet{
 
     void inline decrement_frequency(){
       frequency -= MY_2PI / 90.0f;
+    }
+
+    void inline increment_direction(){
+      direction = direction * mat4t().rotateZ(15.0f);
+    }
+
+    void inline decrement_direction(){
+      direction = direction * mat4t().rotateZ(15.0f);
     }
 
 #pragma endregion
