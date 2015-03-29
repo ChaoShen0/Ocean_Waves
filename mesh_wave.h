@@ -28,7 +28,23 @@ namespace octet{
       uint32_t colour;
     };
 
-    static unsigned int _time;
+    struct sine_wave{
+      float amplitude;
+      vec3 direction;
+      float frequency;
+      float omega;
+
+      // _r: rate or inverse frequency, _s speed
+      sine_wave(float _a, vec3 _d, float _r, float _s){
+        amplitude = _a;
+        direction = _d;
+        frequency = MY_2PI * _r;
+        omega = _s * frequency;
+      }
+
+    };
+
+    static unsigned long long _time;
     float offset;
     vec3 start_pos;
     size_t sqr_size;
@@ -40,18 +56,24 @@ namespace octet{
     }
 
     // default sine wave
-    float amplitude = 1.0f;
-    vec3 direction = vec3(1.0f, 1.0f, 0.0f);
-    float frequency = MY_2PI / 90.0f;         // multiply by inverse wavelength
-    float omega = 3.0f * frequency;           // phase velocity
+    sine_wave sine_default = sine_wave(1.0f, vec3(1.0f, 1.0f, 0.0f), 0.01f, 3.0f);
 
     // takes a vertex index and returns the height according to the current time
     // currently uses the default sine wave.
-    float get_wave_pos(int x, int y){
-      float vector_product = direction.dot(vec3((float)x, (float)y, 0.0f));
-      float height = amplitude * sin(vector_product * frequency + _time * omega);
-
+    float get_wave_pos(int x, int y, sine_wave wave){
+      float vector_product = wave.direction.dot(vec3((float)x, (float)y, 0.0f));
+      float height = wave.amplitude * sin(vector_product * wave.frequency + _time * wave.omega);
       return height;
+    }
+
+    // Calculate mesh vertices using the Gernster Wave Function
+    // Does so cumulatively over a given number of sine waves
+    // this is used to update the vertices in the update loop
+    // and also calculates the wave height
+    vec3 compute_gerstner_points(int x, int y){
+
+
+      return vec3();
     }
 
   public:
@@ -143,7 +165,8 @@ namespace octet{
 
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
-          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + vec3(0, 0, get_wave_pos(j, i)));
+          vec3 wave_vector = compute_gerstner_points(j, i);
+          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + vec3(0, 0, get_wave_pos(j, i, sine_default)));
         }
       }
       ++_time;
@@ -154,19 +177,19 @@ namespace octet{
     scene_node *get_node() { return _node; }
 
     void inline increment_frequency(){
-      frequency += MY_2PI / 90.0f;
+      sine_default.frequency += MY_2PI / 90.0f;
     }
 
     void inline decrement_frequency(){
-      frequency -= MY_2PI / 90.0f;
+      sine_default.frequency -= MY_2PI / 90.0f;
     }
 
     void inline increment_direction(){
-      direction = direction * mat4t().rotateZ(15.0f);
+      sine_default.direction = sine_default.direction * mat4t().rotateZ(15.0f);
     }
 
     void inline decrement_direction(){
-      direction = direction * mat4t().rotateZ(15.0f);
+      sine_default.direction = sine_default.direction * mat4t().rotateZ(15.0f);
     }
 
     void inline wire_frame_mode(){
@@ -186,7 +209,7 @@ namespace octet{
   };
 
 
-  unsigned int mesh_wave::_time = 0;
+  unsigned long long mesh_wave::_time = 0;
 
 }
 
