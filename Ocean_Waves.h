@@ -13,6 +13,7 @@ namespace octet {
     // scene for drawing box
     ref<visual_scene> app_scene;
     ref<camera_instance> camera;
+    ref<mesh_wave> wave;
   public:
     /// this is called when we construct the class before everything is initialised.
     Ocean_Waves(int argc, char **argv) : app(argc, argv) {
@@ -26,7 +27,7 @@ namespace octet {
       camera = app_scene->get_camera_instance(0);
       //camera->get_node()->rotate(90.0f, vec3(0, 1, 0));
 
-      mesh_wave *wave = new mesh_wave();
+      wave = new mesh_wave();
       wave->update();
       wave->rebuild_mesh();
       wave->add_to_the_scene(app_scene);
@@ -39,6 +40,10 @@ namespace octet {
       app_scene->begin_render(vx, vy);
 
       // update matrices. assume 30 fps.
+
+      wave->update();
+      wave->rebuild_mesh();
+      wave->add_to_the_scene(app_scene);
       app_scene->update(1.0f/30);
 
       // draw the scene

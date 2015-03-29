@@ -43,6 +43,8 @@ namespace octet{
     // default destructor
     ~mesh_wave(){
       delete _mesh;
+      delete _material;
+      _material = NULL;
       _mesh = NULL;
     }
 
@@ -63,6 +65,8 @@ namespace octet{
     void rebuild_mesh(){
       // number of steps in helix
       size_t sqr_size = 8;
+
+      _mesh->init();
 
       // allocate vertices and indices into OpenGL buffers
       size_t num_vertices = sqr_size * sqr_size;
