@@ -7,6 +7,10 @@
 #ifndef MESH_WAVE_INCLUDED
 #define MESH_WAVE_INCLUDED
 
+#define MY_PI  3.141592654
+#define MY_2PI 6.283185307
+
+
 #include <vector>
 namespace octet{
   class mesh_wave : public mesh {
@@ -24,6 +28,7 @@ namespace octet{
       uint32_t colour;
     };
 
+    static unsigned int _time;
     float offset;
     vec3 start_pos;
     int sqr_size;
@@ -33,6 +38,20 @@ namespace octet{
       return 0xff000000 + ((int)(r*255.0f) << 0) + ((int)(g*255.0f) << 8) + ((int)(b*255.0f) << 16);
     }
 
+    // default sine wave
+    float amplitude = 1.0f;
+    vec3 direction = vec3(1.0f, 0.0f, 0.0f);
+    float frequency = MY_2PI * 0.333f;  // multiply by inverse wavelength
+    float omega = 3.0f * frequency;     // phase velocity
+
+    // takes a vertex index and returns the height according to the current time
+    // currently uses the default sine wave.
+    float get_wave_pos(int x, int y){
+      float vector_product = direction.dot(vec3(x, y, 0));
+      float height = amplitude * sin(vector_product * frequency + _time * omega);
+
+      return height;
+    }
 
   public:
     // single arg constructor
@@ -44,8 +63,13 @@ namespace octet{
     ~mesh_wave(){
       delete _mesh;
       delete _material;
+      delete _shader;
+      delete _node;
+      _node = NULL;
+      _shader = NULL;
       _material = NULL;
       _mesh = NULL;
+      points.reset();
     }
 
     // init the mesh_wave
@@ -70,7 +94,7 @@ namespace octet{
 
       // allocate vertices and indices into OpenGL buffers
       size_t num_vertices = sqr_size * sqr_size;
-      size_t num_indices = std::pow((sqr_size-1), 2) * 6;
+      size_t num_indices = std::pow((sqr_size - 1), 2) * 6;
       _mesh->allocate(sizeof(my_vertex) * num_vertices, sizeof(uint32_t) * num_indices);
       _mesh->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
 
@@ -123,14 +147,22 @@ namespace octet{
 
     // update function, recalculates the nodes to change the mesh ideally to look like water
     void update(){
+
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
-          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f));
+          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + vec3(0, 0, get_wave_pos(j, i)));
         }
       }
+      ++_time;
     }
 
   };
+
+
+  unsigned int mesh_wave::_time = 0;
+
 }
+
+
 
 #endif // !MESH_WAVE_INCLUDED

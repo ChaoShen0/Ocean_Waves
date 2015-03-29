@@ -51,6 +51,7 @@ namespace octet {
 
       // tumble the box  (there is only one mesh instance)
       scene_node *node = app_scene->get_mesh_instance(0)->get_node();
+      node->rotate(0.5f, vec3(0, 1, 0));
     }
   };
 }
