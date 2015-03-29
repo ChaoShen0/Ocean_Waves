@@ -41,13 +41,13 @@ namespace octet{
     // default sine wave
     float amplitude = 1.0f;
     vec3 direction = vec3(1.0f, 1.0f, 0.0f);
-    float frequency = MY_2PI / 90.0f;   // multiply by inverse wavelength
+    float frequency = MY_2PI / 90.0f;         // multiply by inverse wavelength
     float omega = 3.0f * frequency;           // phase velocity
 
     // takes a vertex index and returns the height according to the current time
     // currently uses the default sine wave.
     float get_wave_pos(int x, int y){
-      float vector_product = direction.dot(vec3((float) x,(float) y, 0.0f));
+      float vector_product = direction.dot(vec3((float)x, (float)y, 0.0f));
       float height = amplitude * sin(vector_product * frequency + _time * omega);
 
       return height;
@@ -120,7 +120,7 @@ namespace octet{
 
         // make the triangles
         uint32_t vn = 0;
-        for (size_t i = 0; i !=  sqr_size * (sqr_size - 1) + 1; ++i) {
+        for (size_t i = 0; i != sqr_size * (sqr_size - 1) + 1; ++i) {
           // 0--2
           // | \|
           // 1--3
@@ -156,7 +156,16 @@ namespace octet{
 #pragma region GET_&_SETS
     // Get & Set functions
     scene_node *get_node() { return _node; }
-#pragma endregion 
+
+    void inline increment_frequency(){
+      frequency += MY_2PI / 90.0f;
+    }
+
+    void inline decrement_frequency(){
+      frequency -= MY_2PI / 90.0f;
+    }
+
+#pragma endregion
 
   };
 
