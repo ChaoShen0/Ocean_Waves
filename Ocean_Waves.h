@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////f////////////////////////////////////////
 //
 // (C) Andy Thomason 2012-2014
 //
@@ -12,6 +12,7 @@ namespace octet {
   class Ocean_Waves : public app {
     // scene for drawing box
     ref<visual_scene> app_scene;
+    ref<camera_instance> camera;
   public:
     /// this is called when we construct the class before everything is initialised.
     Ocean_Waves(int argc, char **argv) : app(argc, argv) {
@@ -19,8 +20,11 @@ namespace octet {
 
     /// this is called once OpenGL is initialized
     void app_init() {
+      // mess round with the camera
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
+      camera = app_scene->get_camera_instance(0);
+      camera->get_node()->rotate(90.0f, vec3(0, 1, 0));
 
       mesh_wave *wave = new mesh_wave();
       wave->calculate_vertices();
@@ -41,8 +45,6 @@ namespace octet {
 
       // tumble the box  (there is only one mesh instance)
       scene_node *node = app_scene->get_mesh_instance(0)->get_node();
-      node->rotate(1, vec3(1, 0, 0));
-      node->rotate(1, vec3(0, 1, 0));
     }
   };
 }
