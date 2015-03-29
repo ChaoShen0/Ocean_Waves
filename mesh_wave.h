@@ -156,6 +156,11 @@ namespace octet{
       ++_time;
     }
 
+#pragma region GET_&_SETS
+    // Get & Set functions
+    scene_node *get_node() { return _node; }
+#pragma endregion 
+
   };
 
 
