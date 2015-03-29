@@ -32,6 +32,7 @@ namespace octet{
     float offset;
     vec3 start_pos;
     size_t sqr_size;
+    bool is_wireframe = false;
 
     // this function converts three floats into a RGBA 8 bit color
     static uint32_t make_color(float r, float g, float b) {
@@ -166,6 +167,18 @@ namespace octet{
 
     void inline decrement_direction(){
       direction = direction * mat4t().rotateZ(15.0f);
+    }
+
+    void inline wire_frame_mode(){
+      size_t num_vertices = sqr_size * sqr_size;
+      size_t num_indices = (sqr_size - 1) * (sqr_size - 1) * 6;
+      if (!is_wireframe){
+        _mesh->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_LINES, GL_UNSIGNED_INT);
+      }
+      else{
+        _mesh->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
+      }
+      is_wireframe = !is_wireframe;
     }
 
 #pragma endregion

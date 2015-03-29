@@ -23,6 +23,8 @@ namespace octet {
       if (is_key_going_down('K')){ wave->increment_direction(); }
 
       if (is_key_going_down('L')){ wave->decrement_direction(); }
+
+      if (is_key_going_down('W')){ wave->wire_frame_mode(); }
     }
 
   public:
