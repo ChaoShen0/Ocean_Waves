@@ -7,8 +7,8 @@
 #ifndef MESH_WAVE_INCLUDED
 #define MESH_WAVE_INCLUDED
 
-#define MY_PI  3.141592654
-#define MY_2PI 6.283185307
+#define MY_PI  3.141592654f
+#define MY_2PI 6.283185307f
 
 
 #include <vector>
@@ -31,7 +31,7 @@ namespace octet{
     static unsigned int _time;
     float offset;
     vec3 start_pos;
-    int sqr_size;
+    size_t sqr_size;
 
     // this function converts three floats into a RGBA 8 bit color
     static uint32_t make_color(float r, float g, float b) {
@@ -40,14 +40,14 @@ namespace octet{
 
     // default sine wave
     float amplitude = 1.0f;
-    vec3 direction = vec3(1.0f, 0.0f, 0.0f);
-    float frequency = MY_2PI * 0.333f;  // multiply by inverse wavelength
-    float omega = 3.0f * frequency;     // phase velocity
+    vec3 direction = vec3(1.0f, 1.0f, 0.0f);
+    float frequency = MY_2PI / 90.0f;   // multiply by inverse wavelength
+    float omega = 3.0f * frequency;           // phase velocity
 
     // takes a vertex index and returns the height according to the current time
     // currently uses the default sine wave.
     float get_wave_pos(int x, int y){
-      float vector_product = direction.dot(vec3(x, y, 0));
+      float vector_product = direction.dot(vec3((float) x,(float) y, 0.0f));
       float height = amplitude * sin(vector_product * frequency + _time * omega);
 
       return height;
@@ -80,21 +80,18 @@ namespace octet{
       _material = new material(vec4(1, 0, 0, 1), _shader);
 
       offset = 1.0f;
-      sqr_size = 8;
+      sqr_size = 16;
       start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
       points.resize(sqr_size * sqr_size);
     }
 
     // calculate and assign them to indices
     void rebuild_mesh(){
-      // number of steps in helix
-      size_t sqr_size = 8;
-
       _mesh->init();
 
       // allocate vertices and indices into OpenGL buffers
       size_t num_vertices = sqr_size * sqr_size;
-      size_t num_indices = std::pow((sqr_size - 1), 2) * 6;
+      size_t num_indices = (sqr_size - 1) * (sqr_size - 1) * 6;
       _mesh->allocate(sizeof(my_vertex) * num_vertices, sizeof(uint32_t) * num_indices);
       _mesh->set_params(sizeof(my_vertex), num_indices, num_vertices, GL_TRIANGLES, GL_UNSIGNED_INT);
 
@@ -116,14 +113,14 @@ namespace octet{
         for (size_t i = 0; i != sqr_size; ++i) {
           for (size_t j = 0; j != sqr_size; ++j) {
             vtx->pos = points[j + i*sqr_size];
-            vtx->colour = make_color(1.0f, 1.0f, 0.0f);
+            vtx->colour = make_color(1.0f * j / sqr_size, 1.0f * i / sqr_size, 0.0f);
             vtx++;
           }
         }
 
         // make the triangles
         uint32_t vn = 0;
-        for (size_t i = 0; i != 55; ++i) {
+        for (size_t i = 0; i !=  sqr_size * (sqr_size - 1) + 1; ++i) {
           // 0--2
           // | \|
           // 1--3

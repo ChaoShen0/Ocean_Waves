@@ -32,7 +32,7 @@ namespace octet {
       wave->add_to_the_scene(app_scene);
 
       scene_node *node = wave->get_node();
-      node->rotate(90.0f, vec3(1.0f, 0.0f, 0.0f));
+      node->rotate(45.0f, vec3(1.0f, 0.0f, 0.0f));
     }
 
     /// this is called to draw the world
