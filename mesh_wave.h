@@ -56,6 +56,7 @@ namespace octet{
     vec3 start_pos;
     size_t sqr_size;
     bool is_wireframe = false;
+    float total_steepness = 0.5f;  // 0: sine wave, 1: maximum value
 #pragma endregion
 
     // PRIVATE FUNCTIONS
@@ -84,9 +85,20 @@ namespace octet{
     // this is used to update the vertices in the update loop
     // and also calculates the wave height
     vec3 compute_gerstner_points(int x, int y){
+      vec3 vertex = vec3(0);
 
-
-      return vec3();
+      // for each sine wave
+      for (size_t i = 0; i < sine_waves.size(); ++i){
+        // calculate each of the points according to Gerstner's wave function yo!
+        sine_wave wave = sine_waves[i];
+        float steepness = total_steepness / (wave.omega * sine_waves.size());
+        float radians = wave.omega * wave.direction.dot(vec3(x, y, 0.0f) + _time * wave.omega);
+        float x_pos = steepness * wave.direction.x() * cosf(radians);
+        float y_pos = steepness * wave.direction.y() * cosf(radians);
+        float z_pos = wave.amplitude * sinf(radians);
+        vertex += vec3(x_pos, y_pos, z_pos);
+      }
+      return vertex;
     }
 #pragma endregion
 
@@ -183,7 +195,7 @@ namespace octet{
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
           vec3 wave_vector = compute_gerstner_points(j, i);
-          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + vec3(0, 0, get_wave_pos(j, i, (*sine_waves.begin()))));
+          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + wave_vector);
         }
       }
       ++_time;
@@ -193,12 +205,12 @@ namespace octet{
     // Get & Set functions
     scene_node *get_node() { return _node; }
 
-    void inline increment_frequency(){
-      sine_waves.begin()->frequency += MY_2PI / 90.0f;
+    void inline increment_frequency() {
+      sine_waves.begin()->frequency += MY_2PI * 0.01f;
     }
 
     void inline decrement_frequency(){
-      sine_waves.begin()->frequency -= MY_2PI / 90.0f;
+      sine_waves.begin()->frequency -= MY_2PI * 0.01f;
     }
 
     void inline increment_direction(){
