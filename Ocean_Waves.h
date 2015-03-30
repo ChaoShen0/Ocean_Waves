@@ -39,6 +39,7 @@ namespace octet {
       app_scene =  new visual_scene();
       app_scene->create_default_camera_and_lights();
       camera = app_scene->get_camera_instance(0);
+      camera->get_node()->translate(vec3(0.0f, 0.0f, 4.0f));
 
       wave = new mesh_wave();
       wave->update();
@@ -46,7 +47,7 @@ namespace octet {
       wave->add_to_the_scene(app_scene);
 
       scene_node *node = wave->get_node();
-      node->rotate(45.0f, vec3(1.0f, 0.0f, 0.0f));
+      node->rotate(-45.0f, vec3(1.0f, 0.0f, 0.0f));
     }
 
     /// this is called to draw the world

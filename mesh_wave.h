@@ -10,8 +10,9 @@
 #define MY_PI  3.141592654f
 #define MY_2PI 6.283185307f
 
-
+#include <ctime>
 #include <vector>
+
 namespace octet{
   class mesh_wave : public mesh {
   private:
@@ -51,12 +52,14 @@ namespace octet{
     scene_node *_node;
     dynarray<vec3p> points;
     dynarray<sine_wave> sine_waves;
+    int num_waves = 8;
     static unsigned long long _time;
-    float offset;
+    float offset = 1.0f;
     vec3 start_pos;
-    size_t sqr_size;
+    size_t sqr_size = 64;
     bool is_wireframe = false;
     float total_steepness = 0.5f;  // 0: sine wave, 1: maximum value
+    random gen; // random number generator
 #pragma endregion
 
     // PRIVATE FUNCTIONS
@@ -68,8 +71,15 @@ namespace octet{
 
     // create default sine waves
     void create_default_sine_waves(){
-      sine_waves.push_back(sine_wave(1.0f, vec3(1.0f, 1.0f, 0.0f), 0.01f, 3.0f));
-      sine_waves.push_back(sine_wave(0.5f, vec3(1.0f, -1.0f, 0.0f), 0.2f, 6.0f));
+      // set base wave attributes; each successive wave will have half / twice the value
+      float freq = 0.01f;
+      float ampl = 1.0f;
+      float phase = 3.0f;
+      for (size_t i = 0; i < num_waves; ++i){
+        sine_waves.push_back(sine_wave(ampl * std::pow(0.5, (i + 1)),
+                             vec3(gen.get(-1.0f, 1.0f), gen.get(-1.0f, 1.0f), 0.0f),
+                             freq * 2 *(i + 1), phase));
+      }
     }
 
     // SUPERCEEDED takes a vertex index and returns the height according to the current time
@@ -100,6 +110,7 @@ namespace octet{
       }
       return vertex;
     }
+
 #pragma endregion
 
   public:
@@ -128,8 +139,6 @@ namespace octet{
       _shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
       _material = new material(vec4(1, 0, 0, 1), _shader);
 
-      offset = 1.0f;
-      sqr_size = 32;
       start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
       points.resize(sqr_size * sqr_size);
 
@@ -142,6 +151,9 @@ namespace octet{
       // describe the structure of my_vertex to OpenGL
       _mesh->add_attribute(attribute_pos, 3, GL_FLOAT, 0);
       _mesh->add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
+
+      // init random number generator
+      gen.set_seed(time(0));
 
       // construct the default sine waves
       create_default_sine_waves();
