@@ -52,11 +52,11 @@ namespace octet{
     scene_node *_node;
     dynarray<vec3p> points;
     dynarray<sine_wave> sine_waves;
-    int num_waves = 8;
+    int num_waves = 1;
     static unsigned long long _time;
     float offset = 1.0f;
     vec3 start_pos;
-    size_t sqr_size = 64;
+    size_t sqr_size = 32;
     bool is_wireframe = false;
     float total_steepness = 0.5f;  // 0: sine wave, 1: maximum value
     random gen; // random number generator
@@ -69,6 +69,14 @@ namespace octet{
       return 0xff000000 + ((int)(r*255.0f) << 0) + ((int)(g*255.0f) << 8) + ((int)(b*255.0f) << 16);
     }
 
+    // SUPERCEEDED takes a vertex index and returns the height according to the current time
+    // currently uses the default sine wave.
+    float get_wave_pos(int x, int y, sine_wave wave){
+      float vector_product = wave.direction.dot(vec3((float)x, (float)y, 0.0f));
+      float height = wave.amplitude * sin(vector_product * wave.frequency + _time * wave.omega);
+      return height;
+    }
+
     // create default sine waves
     void create_default_sine_waves(){
       // set base wave attributes; each successive wave will have half / twice the value
@@ -77,18 +85,13 @@ namespace octet{
       float phase = 3.0f;
       for (size_t i = 0; i < num_waves; ++i){
         sine_waves.push_back(sine_wave(ampl * std::pow(0.5, (i + 1)),
-                             vec3(gen.get(-1.0f, 1.0f), gen.get(-1.0f, 1.0f), 0.0f),
-                             freq * 2 *(i + 1), phase));
+          vec3(gen.get(-1.0f, 1.0f), gen.get(-1.0f, 1.0f), 0.0f),
+          freq * std::pow(1.25f, (i + 1)), phase));
       }
     }
 
-    // SUPERCEEDED takes a vertex index and returns the height according to the current time
-    // currently uses the default sine wave.
-    float get_wave_pos(int x, int y, sine_wave wave){
-      float vector_product = wave.direction.dot(vec3((float)x, (float)y, 0.0f));
-      float height = wave.amplitude * sin(vector_product * wave.frequency + _time * wave.omega);
-      return height;
-    }
+    // get a random colour such that the coul will be proceadurally generated
+
 
     // Calculate mesh vertices using the Gernster Wave Function
     // Does so cumulatively over a given number of sine waves
@@ -216,8 +219,16 @@ namespace octet{
     // Get & Set functions
     scene_node *get_node() { return _node; }
 
+    void inline increment_amplitude() {
+      sine_waves.begin()->amplitude += 0.1f;
+    }
+
+    void inline decrement_amplitude() {
+      sine_waves.begin()->amplitude -= 0.1f;
+    }
+
     void inline increment_frequency() {
-      sine_waves.begin()->frequency += MY_2PI * 0.01f;
+      sine_waves.begin()->frequency += MY_2PI * 10.1f;
     }
 
     void inline decrement_frequency(){
