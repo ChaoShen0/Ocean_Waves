@@ -59,7 +59,7 @@ namespace octet {
 
       wave->update();
       wave->rebuild_mesh();
-      wave->add_to_the_scene(app_scene);
+
       app_scene->update(1.0f/30);
 
       // draw the scene
@@ -67,7 +67,7 @@ namespace octet {
 
       // tumble the box  (there is only one mesh instance)
       scene_node *node = app_scene->get_mesh_instance(0)->get_node();
-      node->rotate(0.5f, vec3(0, 1, 0));
+      //node->rotate(0.5f, vec3(0, 1, 0));
 
       user_controls();
     }

@@ -69,10 +69,10 @@ namespace octet{
     // create default sine waves
     void create_default_sine_waves(){
       sine_waves.push_back(sine_wave(1.0f, vec3(1.0f, 1.0f, 0.0f), 0.01f, 3.0f));
-      sine_waves.push_back(sine_wave(0.5f, vec3(1.0f, -1.0f, 0.0f), 0.02f, 1.5f));
+      sine_waves.push_back(sine_wave(0.5f, vec3(1.0f, -1.0f, 0.0f), 0.2f, 6.0f));
     }
 
-    // takes a vertex index and returns the height according to the current time
+    // SUPERCEEDED takes a vertex index and returns the height according to the current time
     // currently uses the default sine wave.
     float get_wave_pos(int x, int y, sine_wave wave){
       float vector_product = wave.direction.dot(vec3((float)x, (float)y, 0.0f));
@@ -129,7 +129,7 @@ namespace octet{
       _material = new material(vec4(1, 0, 0, 1), _shader);
 
       offset = 1.0f;
-      sqr_size = 16;
+      sqr_size = 32;
       start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
       points.resize(sqr_size * sqr_size);
 
@@ -191,7 +191,6 @@ namespace octet{
 
     // update function, recalculates the nodes to change the mesh ideally to look like water
     void update(){
-
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
           vec3 wave_vector = compute_gerstner_points(j, i);
