@@ -22,6 +22,7 @@ namespace octet{
     // vertex structure to be passed to openGL
     struct my_vertex{
       vec3p pos;
+      vec3p norm;
       uint32_t colour;
     };
 
@@ -51,6 +52,7 @@ namespace octet{
     param_shader *_shader;
     scene_node *_node;
     dynarray<vec3p> points;
+    dynarray<vec3p> normals;
     dynarray<sine_wave> sine_waves;
     int num_waves = 8;
     static unsigned long long _time;
@@ -84,13 +86,13 @@ namespace octet{
     // create default sine waves
     void create_default_sine_waves(){
       // set base wave attributes; each successive wave will have half / twice the value
-      float freq = 0.01f;
+      float freq = 0.02f;
       float ampl = 1.0f;
       float phase = 3.0f;
       for (size_t i = 0; i < num_waves; ++i){
         sine_waves.push_back(sine_wave(ampl * std::pow(0.5, (i + 1)),
           vec3(gen.get(-1.0f, 1.0f), gen.get(-1.0f, 1.0f), 0.0f),
-          freq * std::pow(1.25f, (i + 1)), phase));
+          freq , phase));
       }
     }
 
@@ -119,6 +121,24 @@ namespace octet{
         vertex += vec3(x_pos, y_pos, z_pos);
       }
       return vertex;
+    }
+
+    // Calcualte normals according to Gerstner waves function
+    vec3 compute_gerstner_normals(int x, int y, vec3 point){
+      vec3 normal = vec3(0.0f, 0.0f, 1.0f);
+
+      for each (sine_wave wave in sine_waves)
+      {
+        float height_term = wave.omega * wave.amplitude;
+        float steepness = total_steepness / (wave.omega * sine_waves.size());
+        float radians = wave.omega * wave.direction.dot(vec3(x, y, 0.0f) + _time * wave.omega);
+        float x_pos = -height_term * wave.direction.x() * cosf(radians);
+        float y_pos = -height_term * wave.direction.y() * cosf(radians);
+        float z_pos = -steepness * height_term * sinf(radians);
+        normal += vec3(x_pos, y_pos, z_pos);
+      }
+
+      return normal;
     }
 
 #pragma endregion
@@ -151,6 +171,7 @@ namespace octet{
 
       start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
       points.resize(sqr_size * sqr_size);
+      normals.resize(sqr_size * sqr_size);
 
       // allocate vertices and indices into OpenGL buffers
       size_t num_vertices = sqr_size * sqr_size;
@@ -160,6 +181,7 @@ namespace octet{
 
       // describe the structure of my_vertex to OpenGL
       _mesh->add_attribute(attribute_pos, 3, GL_FLOAT, 0);
+      _mesh->add_attribute(attribute_normal, 3, GL_FLOAT, 0);
       _mesh->add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
 
       // init random number generator
@@ -183,6 +205,7 @@ namespace octet{
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
           vtx->pos = points[j + i*sqr_size];
+          vtx->norm = normals[j + i*sqr_size];
           vtx->colour = make_color(make_random_colour());
           vtx++;
         }
@@ -218,6 +241,7 @@ namespace octet{
         for (size_t j = 0; j != sqr_size; ++j) {
           vec3 wave_vector = compute_gerstner_points(j, i);
           points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + wave_vector);
+          normals[j + i * sqr_size] = vec3p(compute_gerstner_normals(j, i, points[j + i*sqr_size]));
         }
       }
       ++_time;
@@ -237,11 +261,11 @@ namespace octet{
     }
 
     void inline increment_frequency() {
-      sine_waves.begin()->frequency += MY_2PI * 10.1f;
+      sine_waves.begin()->omega += MY_2PI * 0.01f;
     }
 
     void inline decrement_frequency(){
-      sine_waves.begin()->frequency -= MY_2PI * 0.01f;
+      sine_waves.begin()->omega -= MY_2PI * 0.01f;
     }
 
     void inline increment_direction(){
