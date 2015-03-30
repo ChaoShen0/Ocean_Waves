@@ -16,12 +16,8 @@ namespace octet{
   class mesh_wave : public mesh {
   private:
 
-    mesh *_mesh;
-    material *_material;
-    param_shader *_shader;
-    scene_node *_node;
-    dynarray<vec3p> points;
-
+    // STRUCTURES
+#pragma region STRUCTURES
     // vertex structure to be passed to openGL
     struct my_vertex{
       vec3p pos;
@@ -34,6 +30,8 @@ namespace octet{
       float frequency;
       float omega;
 
+      sine_wave() = default;
+
       // _r: rate or inverse frequency, _s speed
       sine_wave(float _a, vec3 _d, float _r, float _s){
         amplitude = _a;
@@ -41,22 +39,37 @@ namespace octet{
         frequency = MY_2PI * _r;
         omega = _s * frequency;
       }
-
     };
 
+#pragma endregion
+
+    // MEMBER VARIABLES
+#pragma region MEMBER_VARIABLES
+    mesh *_mesh;
+    material *_material;
+    param_shader *_shader;
+    scene_node *_node;
+    dynarray<vec3p> points;
+    dynarray<sine_wave> sine_waves;
     static unsigned long long _time;
     float offset;
     vec3 start_pos;
     size_t sqr_size;
     bool is_wireframe = false;
+#pragma endregion
 
+    // PRIVATE FUNCTIONS
+#pragma region PRIVATE_FUNCTIONS
     // this function converts three floats into a RGBA 8 bit color
     static uint32_t make_color(float r, float g, float b) {
       return 0xff000000 + ((int)(r*255.0f) << 0) + ((int)(g*255.0f) << 8) + ((int)(b*255.0f) << 16);
     }
 
-    // default sine wave
-    sine_wave sine_default = sine_wave(1.0f, vec3(1.0f, 1.0f, 0.0f), 0.01f, 3.0f);
+    // create default sine waves
+    void create_default_sine_waves(){
+      sine_waves.push_back(sine_wave(1.0f, vec3(1.0f, 1.0f, 0.0f), 0.01f, 3.0f));
+      sine_waves.push_back(sine_wave(0.5f, vec3(1.0f, -1.0f, 0.0f), 0.02f, 1.5f));
+    }
 
     // takes a vertex index and returns the height according to the current time
     // currently uses the default sine wave.
@@ -75,6 +88,7 @@ namespace octet{
 
       return vec3();
     }
+#pragma endregion
 
   public:
     // single arg constructor
@@ -116,6 +130,9 @@ namespace octet{
       // describe the structure of my_vertex to OpenGL
       _mesh->add_attribute(attribute_pos, 3, GL_FLOAT, 0);
       _mesh->add_attribute(attribute_color, 4, GL_UNSIGNED_BYTE, 12, GL_TRUE);
+
+      // construct the default sine waves
+      create_default_sine_waves();
     }
 
     // calculate and assign them to indices
@@ -166,7 +183,7 @@ namespace octet{
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
           vec3 wave_vector = compute_gerstner_points(j, i);
-          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + vec3(0, 0, get_wave_pos(j, i, sine_default)));
+          points[j + i*sqr_size] = vec3p(start_pos + vec3(offset * j, -offset * i, 0.0f) + vec3(0, 0, get_wave_pos(j, i, (*sine_waves.begin()))));
         }
       }
       ++_time;
@@ -177,19 +194,19 @@ namespace octet{
     scene_node *get_node() { return _node; }
 
     void inline increment_frequency(){
-      sine_default.frequency += MY_2PI / 90.0f;
+      sine_waves.begin()->frequency += MY_2PI / 90.0f;
     }
 
     void inline decrement_frequency(){
-      sine_default.frequency -= MY_2PI / 90.0f;
+      sine_waves.begin()->frequency -= MY_2PI / 90.0f;
     }
 
     void inline increment_direction(){
-      sine_default.direction = sine_default.direction * mat4t().rotateZ(15.0f);
+      sine_waves.begin()->direction = sine_waves.begin()->direction * mat4t().rotateZ(15.0f);
     }
 
     void inline decrement_direction(){
-      sine_default.direction = sine_default.direction * mat4t().rotateZ(15.0f);
+      sine_waves.begin()->direction = sine_waves.begin()->direction * mat4t().rotateZ(15.0f);
     }
 
     void inline wire_frame_mode(){
@@ -207,7 +224,6 @@ namespace octet{
 #pragma endregion
 
   };
-
 
   unsigned long long mesh_wave::_time = 0;
 

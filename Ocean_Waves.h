@@ -15,6 +15,7 @@ namespace octet {
     ref<camera_instance> camera;
     ref<mesh_wave> wave;
 
+
     void user_controls(){
       if (is_key_going_down('O')){ wave->increment_frequency(); }
 
