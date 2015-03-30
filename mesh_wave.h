@@ -99,7 +99,7 @@ namespace octet{
     // get a random colour such that the colour will be proceadurally generated
     // this version of the function doesn't take into account the vertices' position
     vec3 make_random_colour(){
-      return vec3(0.0f, gen.get(0, 2) * 0.4f, 0.8f);
+      return vec3(0.0f, 0.4f, 0.8f);
     }
 
     // Calculate mesh vertices using the Gernster Wave Function
@@ -114,7 +114,7 @@ namespace octet{
         // calculate each of the points according to Gerstner's wave function yo!
         sine_wave wave = sine_waves[i];
         float steepness = total_steepness / (wave.omega * sine_waves.size());
-        float radians = wave.omega * wave.direction.dot(vec3(x, y, 0.0f) + _time * wave.omega);
+        float radians = wave.frequency * wave.direction.dot(vec3(x, y, 0.0f)) + _time * wave.omega;
         float x_pos = steepness * wave.direction.x() * cosf(radians);
         float y_pos = steepness * wave.direction.y() * cosf(radians);
         float z_pos = wave.amplitude * sinf(radians);
@@ -131,7 +131,7 @@ namespace octet{
       {
         float height_term = wave.omega * wave.amplitude;
         float steepness = total_steepness / (wave.omega * sine_waves.size());
-        float radians = wave.omega * wave.direction.dot(vec3(x, y, 0.0f) + _time * wave.omega);
+        float radians = wave.frequency * wave.direction.dot(point) + _time * wave.omega; 
         float x_pos = -height_term * wave.direction.x() * cosf(radians);
         float y_pos = -height_term * wave.direction.y() * cosf(radians);
         float z_pos = -steepness * height_term * sinf(radians);
@@ -166,8 +166,8 @@ namespace octet{
     void init(){
       _mesh = new mesh();
       _node = new scene_node();
-      _shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
-      _material = new material(vec4(1, 0, 0, 1), _shader);
+      _shader = new param_shader("shaders/default.vs", "shaders/simple_colour.fs");
+      _material = new material(vec4(1, 1, 0, 1), _shader);
 
       start_pos = vec3(-offset * 0.5f * sqr_size, offset * 0.5f * sqr_size, -1.0f);
       points.resize(sqr_size * sqr_size);
@@ -261,11 +261,11 @@ namespace octet{
     }
 
     void inline increment_frequency() {
-      sine_waves.begin()->omega += MY_2PI * 0.01f;
+      sine_waves.begin()->omega += sine_waves.begin()->omega * sine_waves.begin()->frequency;
     }
 
     void inline decrement_frequency(){
-      sine_waves.begin()->omega -= MY_2PI * 0.01f;
+      sine_waves.begin()->omega -= sine_waves.begin()->omega * sine_waves.begin()->frequency;
     }
 
     void inline increment_direction(){
