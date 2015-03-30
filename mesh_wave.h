@@ -52,7 +52,7 @@ namespace octet{
     scene_node *_node;
     dynarray<vec3p> points;
     dynarray<sine_wave> sine_waves;
-    int num_waves = 1;
+    int num_waves = 8;
     static unsigned long long _time;
     float offset = 1.0f;
     vec3 start_pos;
@@ -67,6 +67,10 @@ namespace octet{
     // this function converts three floats into a RGBA 8 bit color
     static uint32_t make_color(float r, float g, float b) {
       return 0xff000000 + ((int)(r*255.0f) << 0) + ((int)(g*255.0f) << 8) + ((int)(b*255.0f) << 16);
+    }
+
+    static uint32_t make_color(vec3 col) {
+      return 0xff000000 + ((int)(col.x()*255.0f) << 0) + ((int)(col.y()*255.0f) << 8) + ((int)(col.z()*255.0f) << 16);
     }
 
     // SUPERCEEDED takes a vertex index and returns the height according to the current time
@@ -90,8 +94,11 @@ namespace octet{
       }
     }
 
-    // get a random colour such that the coul will be proceadurally generated
-
+    // get a random colour such that the colour will be proceadurally generated
+    // this version of the function doesn't take into account the vertices' position
+    vec3 make_random_colour(){
+      return vec3(0.0f, gen.get(0, 2) * 0.4f, 0.8f);
+    }
 
     // Calculate mesh vertices using the Gernster Wave Function
     // Does so cumulatively over a given number of sine waves
@@ -171,11 +178,12 @@ namespace octet{
       gl_resource::wolock il(_mesh->get_indices());
       uint32_t *idx = il.u32();
 
+
       // make the vertices
       for (size_t i = 0; i != sqr_size; ++i) {
         for (size_t j = 0; j != sqr_size; ++j) {
           vtx->pos = points[j + i*sqr_size];
-          vtx->colour = make_color(1.0f * j / sqr_size, 1.0f * i / sqr_size, 0.0f);
+          vtx->colour = make_color(make_random_colour());
           vtx++;
         }
       }
@@ -215,6 +223,7 @@ namespace octet{
       ++_time;
     }
 
+    // GETS & SETS
 #pragma region GET_&_SETS
     // Get & Set functions
     scene_node *get_node() { return _node; }
